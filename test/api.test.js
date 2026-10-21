@@ -4,12 +4,13 @@ import request from 'supertest';
 import app from '../src/app.js';
 import { useDatabase } from './helpers.js';
 
-useDatabase();
 
 const base = '/api/categories';
 const shoes = { name: 'Shoes', description: 'Running and walking shoes' };
 
 describe('categories service', () => {
+  useDatabase();
+
   it('creates, reads, updates and deletes a category', async () => {
     const created = await request(app).post(base).send(shoes).expect(201);
     const id = created.body._id;
