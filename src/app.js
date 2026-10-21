@@ -1,4 +1,5 @@
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 import categoryRoutes from './routes/categoryRoutes.js';
 import { client, httpRequestDurationMicroseconds } from './utils/metrics.js';
 
@@ -29,7 +30,17 @@ app.get('/api/categories/metrics', async (req, res) => {
   res.end(await client.register.metrics());
 });
 
+// Behind the ingress, use the client IP from X-Forwarded-For.
+app.set('trust proxy', 1);
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 300,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+});
+
 // Categories API routes
-app.use('/api/categories', categoryRoutes);
+app.use('/api/categories', apiLimiter, categoryRoutes);
 
 export default app;
